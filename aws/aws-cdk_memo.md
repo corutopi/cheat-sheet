@@ -31,7 +31,6 @@ cdk init --language typescript
 - 運用の流れ(更新時)
     - CDKでLambdaデプロイ(バージョン発行) ⇒ 対象バージョンで動作確認 ⇒ エイリアスに対象バージョンを紐づける
 
-
 ## Contextについて
 - ユーザーが指定できる方法は4種類. 以下優先度順.
     - ①```this.node.setContext('key', 'value')``` での指定(Stackクラスでのみ実行可)
@@ -85,6 +84,41 @@ cdk init --language typescript
         const app3 = new cdk.App({ psotCliContext: { stage: 'stage-d', env: 'env-d' } });
         console.log(app2.node.tryGetContext('stage'));  // stage-d
         console.log(app2.node.tryGetContext('env'));    // env-c
+        ```
+
+## ドリフトと解決
+- スタック内のリソースに対してAWSコンソールなどから変更を加えた場合、テンプレートと実際の値に差が生じる
+- この差を検出する機能がドリフト
+    - すべてのサービスに対応しているわけではない
+        - https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/resource-import-supported-resources.html
+- AWSコンソールから確認できる
+    - 現時点では対応する cdk コマンドはない模様？
+- 解決するには2パターンある
+    - ①テンプレートを修正し、実態に合わせる
+    - ②リソースをテンプレートに合うように修正する
+- ①にはさらに２種類ある
+    - リソースの再作成が不要な変更 ⇒ 変更したテンプレートをデプロイすればOK
+    - リソースの再作成が必要な変更(破壊的な変更) ⇒ 対象のリソースを一度テンプレートから除外(削除ポリシー
+    の設定で削除されないようにしておく)し、インポートする
+        - 対象のリソースに対して別リソースから参照がある場合はどうするのか？いろいろややこしそう 
+
+## インポート機能について
+- (スタックで作っていない)新規リソースを既存スタックに取り込む機能
+    - すべてのサービスに対応しているわけではない
+        - https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/resource-import-supported-resources.html
+- テンプレートの状態にいくつか条件がある
+    - ①取り込むリソース以外の差分がない事
+        - CDKMetadata を含む. 出力されるように設定していると必ず差分発生するので```cdk.json```の設定で出力抑制しておくのが良い.
+            ```json
+            "versionReporting": false,
+            ```
+    - ②取り込むリソースの現状の設定とテンプレートの内容が一致していること
+    - ③取り込むリソースに削除ポリシーが明示的に設定されていること(内容は問わない)
+- 条件を満たすテンプレートを用意してAWSコンソールからインポート操作が行える
+- CDKプロジェクトから実行する場合は ```cdk import ${stack-name}```
+    - cdk@2.47.0 時点では import コマンドはまだプレビュー機能で、正式版ではない模様
+        ```
+        The 'cdk import' feature is currently in preview.
         ```
 
 ## Link集
