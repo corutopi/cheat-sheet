@@ -126,3 +126,11 @@ cdk init --language typescript
     - cdkの構築の流れを基礎から説明しているブログ
 - https://tsdoc.org/pages/tags/privateremarks/
     - TSDocについて
+- https://tech.nri-net.com/entry/how_about_cdk_import
+    - cdk import について
+- https://dev.classmethod.jp/articles/aws-devday-online-japan-know-how-from-initial-development-to-operation-on-how-to-use-aws-cdk/
+    - cdk の俺的ベストプラクティス？
+- https://aws.amazon.com/jp/blogs/news/best-practices-for-developing-cloud-applications-with-aws-cdk/
+    - cdk 公式ベストプラクティス
+- https://logmi.jp/tech/articles/326696
+    - リソース名に物理名をつけることに関する考察
