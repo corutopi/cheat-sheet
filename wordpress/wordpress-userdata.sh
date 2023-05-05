@@ -1,4 +1,5 @@
 #!/bin/bash
+# AWS EC2(ami-052c9af0c988f8bbd) で検証
 
 
 
@@ -29,7 +30,9 @@ systemctl restart sshd.service
 sudo yum update -y
 
 # httpd/php/mariadb のインストール
-sudo amazon-linux-extras enable lamp-mariadb10.2-php7.2
+sudo amazon-linux-extras enable mariadb10.5
+sudo amazon-linux-extras disable php8.0
+sudo amazon-linux-extras enable php8.2
 sudo yum install -y httpd mariadb-server php php-mysqlnd
 
 # httpdの設定
