@@ -3,6 +3,11 @@
     ```bash
     git init
     ```
+- リポジトリ関連
+    ```bash
+    # リモートリポジトリと接続
+    git remote add origin ${URL}
+    ```
 - ブランチ関連
     ```bash
     # すべてのブランチを表示
