@@ -7,7 +7,9 @@
     ```bash
     # リモートリポジトリと接続
     git remote add origin ${URL}
-    ```
+    # 接続中のリモートリポジトリのURL確認
+    git remote -v
+    ``` 
 - ブランチ関連
     ```bash
     # すべてのブランチを表示
