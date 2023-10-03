@@ -25,6 +25,21 @@
     # ブランチを削除
     git branch -d ${branch-name}
     ```
+- Diff
+    ```bash
+    # addした後に差分を見る
+    git diff --cached ${file-name}
+    ```
+- コミット
+    ```bash
+    # 基本
+    git commit --author "${user-name}<${user-mail-address}>" -m "${comment}"
+    ```
+- マージ
+    ```bash
+    # マージ時にコミットしない、fast-forwardしない
+    git merge --no-commit --no-ff ${from-branch-name}
+    ```
 - Push
     ```bash
     # リモートブランが指定されていないときのPush
