@@ -1,4 +1,7 @@
 """
+description:
+    IAMリソースから所定のActionを持つリソースを列挙する
+
 requirements:
     boto3
 """
