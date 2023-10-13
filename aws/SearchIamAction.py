@@ -38,7 +38,8 @@ def hasAction(document: dict, action: str) -> bool:
 target_roles = []
 roles = client.list_roles()
 roles = [r['RoleName'] for r in roles['Roles']]
-pprint.pprint(roles)
+# pprint.pprint(roles)
+roles = []  ### stoper
 for role in roles:
     # インラインポリシー
     role_policies = client.list_role_policies(RoleName=role)['PolicyNames']
@@ -70,9 +71,26 @@ for role in roles:
             target_roles.append(role)
             break
     
-print('============================')
-pprint.pprint(target_roles)
+# print('============================')
+# pprint.pprint(target_roles)
 
 # todo: IAM User
+target_users = []
+users = [u['UserName'] for u in client.list_users()['Users']]
+pprint.pprint(users)
+
+pprint.pprint(client.get_user_policy(UserName='ss-chkOnepanman-gitaction-user', PolicyName='ecr_access'))
+
+for user in users:
+    # インラインポリシー
+    user_policies = client.list_user_policies(UserName=user)['PolicyNames']
+    pprint.pprint(user_policies)
+    for user_policy in user_policies:
+        policy = client.get_user_policy(UserName=user, PolicyName=user_policy)['PolicyDocument']
+        pprint.pprint(policy)
+        
+    # pprint.pprint(user_policies)
+    # 所属グループ
+
 
 # todo: (IAM Policy)
