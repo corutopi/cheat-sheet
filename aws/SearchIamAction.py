@@ -56,8 +56,8 @@ for role in roles:
     # アタッチポリシー
     attached_policies = client.list_attached_role_policies(RoleName=role)
     
-    print(role)
-    pprint.pprint(attached_policies)
+    # print(role)
+    # pprint.pprint(attached_policies)
     
     for attached_policy in attached_policies['AttachedPolicies']:
         policy = client.get_policy(PolicyArn=attached_policy['PolicyArn'])
@@ -86,11 +86,57 @@ for user in users:
     user_policies = client.list_user_policies(UserName=user)['PolicyNames']
     pprint.pprint(user_policies)
     for user_policy in user_policies:
-        policy = client.get_user_policy(UserName=user, PolicyName=user_policy)['PolicyDocument']
-        pprint.pprint(policy)
+        policy = client.get_user_policy(UserName=user, PolicyName=user_policy)
+        if hasAction(policy['PolicyDocument'], target_action):
+            target_users.append(user)
+            break
+    if user in target_users: continue
+
+    # アタッチポリシー
+    attached_policies = client.list_attached_user_policies(UserName=user)
+    pprint.pprint(attached_policies)
+    
+    for attached_policy in attached_policies['AttachedPolicies']:
+        policy = client.get_policy(PolicyArn=attached_policy['PolicyArn'])
+        # pprint.pprint(policy)
+        policy_document = client.get_policy_version(
+            PolicyArn=attached_policy['PolicyArn'], 
+            VersionId=policy['Policy']['DefaultVersionId']
+        )['PolicyVersion']['Document']
+        # pprint.pprint(policy_document)
+        if hasAction(policy_document, target_action):
+            target_users.append(user)
+            break
+    
+    # 所属グループポリシー
+    groups = [g['GroupName'] for g in client.list_groups_for_user(UserName=user)['Groups']]
+    print(f'groups={groups}')
+    for group in groups:
+        # インラインポリシー
+        group_policies = client.list_group_policies(GroupName=group)
+        pprint.pprint(group_policies)
+        for group_policy in group_policies['PolicyNames']:
+            policy = client.get_group_policy(GroupName=group, PolicyName=group_policy)
+            if hasAction(policy['PolicyDocument'], target_action):
+                target_users.append(user)
+                break
+        if user in target_users: continue
         
-    # pprint.pprint(user_policies)
-    # 所属グループ
-
-
-# todo: (IAM Policy)
+        # アタッチポリシー
+        attached_policies = client.list_attached_group_policies(GroupName=group)
+        pprint.pprint(attached_policies)
+        
+        for attached_policy in attached_policies['AttachedPolicies']:
+            policy = client.get_policy(PolicyArn=attached_policy['PolicyArn'])
+            # pprint.pprint(policy)
+            policy_document = client.get_policy_version(
+                PolicyArn=attached_policy['PolicyArn'], 
+                VersionId=policy['Policy']['DefaultVersionId']
+            )['PolicyVersion']['Document']
+            # pprint.pprint(policy_document)
+            if hasAction(policy_document, target_action):
+                target_users.append(user)
+                break
+        
+    
+pprint.pprint(target_users)
