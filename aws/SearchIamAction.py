@@ -7,7 +7,7 @@ requirements:
     tqdm
 
 todo:
-    -
+    必要な権限の洗い出し
 """
 
 import sys
