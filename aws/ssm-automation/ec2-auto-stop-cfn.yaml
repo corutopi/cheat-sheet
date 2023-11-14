@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties: 
+      RoleName: 'ec2-auto-stop-mw-role'
+      Description: 'autostop'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement: 
+          - Effect: 'Allow'
+            Principal: 
+              Service: 
+                - 'ssm.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'execute-ssm-mw'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement: 
+              - Effect: 'Allow'
+                Action:
+                  - 'sts:AssumeRole'
+                Resource:
+                  - '*'
+        - PolicyName: 'execute-ssm-ec2-stop-document'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement: 
+              - Effect: 'Allow'
+                Action:
+                  - 'ec2:StopInstances'
+                Resource:
+                  - 'arn:aws:ec2:*:*:instance/*'
+  ResourceGroups:
+    Type: 'AWS::ResourceGroups::Group'
+    Properties: 
+      Name: 'ec2-auto-stop-tag-group'
+      Description: 'autostop'
+      ResourceQuery:
+        Type: 'TAG_FILTERS_1_0'
+        Query:
+          TagFilters:
+            - Key: 'AutoStop'
+              Values: 
+                - 'True'
+                - 'true'
+                - 'TRUE'
+  SSMDocument:
+    Type: 'AWS::SSM::Document'
+    Properties: 
+      Name: 'ec2-stop-doc'
+      DocumentFormat: 'YAML'
+      DocumentType: 'Automation'
+      Content:
+        description: 'stop ec2 instance.'
+        schemaVersion: '0.3'
+        assumeRole: '{{ AutomationAssumeRole }}'
+        parameters:
+          InstanceIds:
+            type: 'StringList'
+          AutomationAssumeRole:
+            type: 'String'
+            default: ''
+        mainSteps:
+          - name: 'stop_ec2'
+            description: 'execute stop ec2 instance API.'
+            action: 'aws:executeAwsApi'
+            inputs:
+              Service: 'ec2'
+              Api: 'StopInstances'
+              InstanceIds: '{{ InstanceIds }}'
+  SSMMaintenanceWindow:
+    Type: 'AWS::SSM::MaintenanceWindow'
+    Properties: 
+      Name: 'ec2-auto-stop-ssmmw'
+      Description: 'autostop'
+      AllowUnassociatedTargets: true
+      Cutoff: 0
+      Duration: 1
+      Schedule: 'cron(0 0 23 ? * * *)'
+      ScheduleTimezone: 'Asia/Tokyo'
+  SSMMaintenanceWindowTarget:
+    Type: 'AWS::SSM::MaintenanceWindowTarget'
+    Properties: 
+      Name: 'ec2-auto-stop-ssmmwtarget'
+      Description: 'autostop'
+      ResourceType: 'RESOURCE_GROUP'
+      Targets:
+        - Key: 'resource-groups:Name'
+          Values:
+            - !Ref ResourceGroups
+      WindowId: !Ref SSMMaintenanceWindow
+  SSMMaintenanceWindowTask:
+    Type: 'AWS::SSM::MaintenanceWindowTask'
+    Properties: 
+      Name: 'ec2-auto-stop-ssmmwtask'
+      Description: 'autostop'
+      TaskType: 'AUTOMATION'
+      MaxConcurrency: '20%'
+      MaxErrors: '100%'
+      Priority: 1
+      ServiceRoleArn: !GetAtt IAMRole.Arn
+      Targets:
+        - Key: 'WindowTargetIds'
+          Values:
+            - !Ref SSMMaintenanceWindowTarget
+      TaskArn: !Ref SSMDocument
+      TaskInvocationParameters:
+        MaintenanceWindowAutomationParameters:
+          DocumentVersion: '$DEFAULT'
+          Parameters:
+            InstanceId:
+              - '{{ RESOURCE_ID }}'
+      WindowId: !Ref SSMMaintenanceWindow
