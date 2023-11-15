@@ -24,6 +24,11 @@ Resources:
                   - 'sts:AssumeRole'
                 Resource:
                   - '*'
+              - Effect: 'Allow'
+                Action:
+                  - 'resource-groups:*'
+                Resource:
+                  - '*'
         - PolicyName: 'execute-ssm-ec2-stop-document'
           PolicyDocument:
             Version: '2012-10-17'
