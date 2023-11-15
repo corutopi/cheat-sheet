@@ -1,9 +1,20 @@
 AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  ResourceNamePrefix:
+    Type: String
+    Description: Prefix given to all resources created with this template.
+  MaintenanceWindowScheduleTimezone:
+    Type: String
+    Default: 'Asia/Tokyo'
+  MaintenanceWindowSchedule:
+    Type: String
+    Description: Specifies the interval at which the maintenance window is run using a cron expression (on Time zone specified by MaintenanceWindowScheduleTimezone).
+    Default: 'cron(0 0 22 ? * * *)'
 Resources:
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties: 
-      RoleName: 'ec2-auto-stop-mw-role'
+      RoleName: !Sub '${ResourceNamePrefix}-ec2-auto-stop-mw-role'
       Description: 'autostop'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -41,7 +52,7 @@ Resources:
   ResourceGroups:
     Type: 'AWS::ResourceGroups::Group'
     Properties: 
-      Name: 'ec2-auto-stop-tag-group'
+      Name: !Sub '${ResourceNamePrefix}-ec2-auto-stop-tag-group'
       Description: 'autostop'
       ResourceQuery:
         Type: 'TAG_FILTERS_1_0'
@@ -55,7 +66,7 @@ Resources:
   SSMDocument:
     Type: 'AWS::SSM::Document'
     Properties: 
-      Name: 'ec2-stop-doc'
+      Name: !Sub '${ResourceNamePrefix}-ec2-stop-doc'
       DocumentFormat: 'YAML'
       DocumentType: 'Automation'
       Content:
@@ -79,17 +90,17 @@ Resources:
   SSMMaintenanceWindow:
     Type: 'AWS::SSM::MaintenanceWindow'
     Properties: 
-      Name: 'ec2-auto-stop-ssmmw'
+      Name: !Sub '${ResourceNamePrefix}-ec2-auto-stop-ssmmw'
       Description: 'autostop'
       AllowUnassociatedTargets: true
       Cutoff: 0
       Duration: 1
-      Schedule: 'cron(0 0 23 ? * * *)'
-      ScheduleTimezone: 'Asia/Tokyo'
+      Schedule: !Ref MaintenanceWindowSchedule
+      ScheduleTimezone: !Ref MaintenanceWindowScheduleTimezone
   SSMMaintenanceWindowTarget:
     Type: 'AWS::SSM::MaintenanceWindowTarget'
     Properties: 
-      Name: 'ec2-auto-stop-ssmmwtarget'
+      Name: !Sub '${ResourceNamePrefix}-ec2-auto-stop-ssmmwtarget'
       Description: 'autostop'
       ResourceType: 'RESOURCE_GROUP'
       Targets:
@@ -100,7 +111,7 @@ Resources:
   SSMMaintenanceWindowTask:
     Type: 'AWS::SSM::MaintenanceWindowTask'
     Properties: 
-      Name: 'ec2-auto-stop-ssmmwtask'
+      Name: !Sub '${ResourceNamePrefix}-ec2-auto-stop-ssmmwtask'
       Description: 'autostop'
       TaskType: 'AUTOMATION'
       MaxConcurrency: '20%'
