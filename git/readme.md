@@ -40,13 +40,17 @@
     # マージ時にコミットしない、fast-forwardしない
     git merge --no-commit --no-ff ${from-branch-name}
     ```
+- Pull
+    ```bash
+    # リモートブランチの削除を反映
+    git fetch --prune
+    ```
 - Push
     ```bash
     # リモートブランが指定されていないときのPush
     ## ローカルと同じ名称のリモートブランチを作成してPush
     git push -u origin ${local-branch-name}
     ```
-
 - 入力した ID/Pass を記憶する
     ```bash
     git config credential.helper store
