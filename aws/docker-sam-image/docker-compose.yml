@@ -1,0 +1,11 @@
+# docker run -it --rm local-sam sam --version
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: local-sam:latest
+
+volumes:
+  mongo-data:
