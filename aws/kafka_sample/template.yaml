@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: for amazon kafka sample.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+
+Resources:
+  KafkaSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security Group for MSK Cluster"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: 9092
+          ToPort: 9092
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          FromPort: 0
+          ToPort: 0
+          CidrIp: "0.0.0.0/0"
+  
+  MSKCluster:
+    Type: "AWS::MSK::Cluster"
+    Properties:
+      ClusterName: "MyKafkaCluster"
+      KafkaVersion: "3.6.0"
+      NumberOfBrokerNodes: 2
+      BrokerNodeGroupInfo:
+        InstanceType: "kafka.t3.small"
+        ClientSubnets: !Ref SubnetIds
+        ConnectivityInfo:
+          PublicAccess:
+            Type: "DISABLED"   # 初回作成時にパブリック"SERVICE_PROVIDED_EIPS")にはできないらしい
+        SecurityGroups:
+          - !Ref KafkaSecurityGroup
+        StorageInfo:
+          EBSStorageInfo:
+            VolumeSize: 10
+      ClientAuthentication:
+        Sasl:
+          Iam:
+            Enabled: true
+        # Tls:
+        #   Enabled: true 
+      # LoggingInfo:
+      #   BrokerLogs:
+      #     CloudWatchLogs:
+      #       Enabled: true
+      #       LogGroup: "MSKLogs"
