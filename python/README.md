@@ -36,7 +36,9 @@ pip install -r requirements.txt
 
 - PowerShell
   ```powershell
+  # どっちでも可
   Get-Command python
+  python -c "import sys; print(sys.executable)"
   ```
 
 ## 参考
